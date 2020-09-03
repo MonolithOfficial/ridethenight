@@ -9,6 +9,7 @@
   "author": "Monolith",
   "license": "ISC",
   "dependencies": {
+    "express":"*",
     "socket.io": "^2.3.0",
     "uuid": "^8.3.0"
   }
