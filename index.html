@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/socket.io/socket.io.js"></script>
-    <script src="//davidshimjs.github.com/qrcodejs/qrcode.min.js"></script>
+    <script src="https://davidshimjs.github.io/qrcodejs/qrcode.min.js"></script>
     <script src="//threejs.org/build/three.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/GLTFLoader.js"></script>
     <link type="text/css" rel="stylesheet" href="./public/style.css">
@@ -114,7 +114,7 @@
 
                 const game_connected = () => {
                     // let url = "http://192.168.0.107:3000?id="+socket.id;
-                    let url = "ridethenight.netlify.app?id="+socket.id;
+                    let url = "https://ridethenight.herokuapp.com?id="+socket.id;
 
                     document.getElementById('urlHolder').innerHTML += `<div id="url">
                             <h4>${url}</h4>
