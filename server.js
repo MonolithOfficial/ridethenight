@@ -15,7 +15,7 @@ const server = http.createServer(app)
 var io = require('socket.io')(server)
 const { v4: uuidV4 } = require('uuid')
 const {performance} = require('perf_hooks');
-const port = 3000
+const PORT = process.env.PORT || 3000;
 let game_sockets = {}
 let controller_sockets = {}
 
@@ -144,4 +144,4 @@ io.on('connect', socket => {
 //     console.log(data);
 // });
 
-console.log(`Server is running on port ${port}`)
+console.log(`Server is running on port ${PORT}`)
