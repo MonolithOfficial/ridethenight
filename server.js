@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 3000;
 let game_sockets = {}
 let controller_sockets = {}
 
-server.listen(port)
+server.listen(PORT)
 app.use("/public", express.static(__dirname + '/public'));
 
 
