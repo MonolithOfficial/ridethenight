@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="//davidshimjs.github.com/qrcodejs/qrcode.min.js"></script>
+    <script src="//threejs.org/build/three.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/GLTFLoader.js"></script>
+    <link type="text/css" rel="stylesheet" href="./public/style.css">
+    <title>Ride The Dawn 3D</title>
+</head>
+<body>
+    <script>
+
+        // var ip = "192.168.0.107";
+        // var port = ':3000';
+        // var current_url = window.location.href;
+
+        var controller_state = {};
+        // var speed = 0;
+        const socket = io();
+        var isReady = false;
+
+
+        // CONTROLLER CONNECTION
+        if (window.location.href.indexOf('?id=') > 0) {
+            // alert(`Connecting to game ${window.location.href.split('?id=')[1]} as a controller.`);
+            socket.emit('controller_connect', window.location.href.split('?id=')[1]);
+
+            var controlHolder = document.createElement('div');
+            controlHolder.id = 'controlHolder';
+            controlHolder.style.display = 'grid';
+            controlHolder.style.gridTemplateColumns = "1fr 1fr";
+            controlHolder.style.height = '100vh';
+            controlHolder.style.width = '100vw';
+
+            document.body.appendChild(controlHolder)
+
+            var decelerate = document.createElement('div');
+            decelerate.id = 'decelerate';
+            decelerate.style.backgroundColor = 'red';
+            // decelerate.style.width = "50vw";
+            // decelerate.style.height = "100vh";
+
+            var accelerate = document.createElement('div')
+            accelerate.id = 'accelerate';
+            accelerate.style.backgroundColor = 'blue';
+            // accelerate.style.width = '50vw';
+            // accelerate.style.height = '100vh';
+
+            document.getElementById('controlHolder').appendChild(accelerate);
+            document.getElementById('controlHolder').appendChild(decelerate);
+
+            // var fullScreenBtn = document.createElement('button');
+            // fullScreenBtn.id = 'fullScreenBtn';
+            // fullScreenBtn.innerHTML = 'Fullscreen Mode';
+            // document.body.appendChild(fullScreenBtn)
+            
+            // document.getElementById('fullScreenBtn').addEventListener("click", () => {
+            //     document.documentElement.requestFullscreen();
+            //     screen.orientation.lock("landscape");
+            // })
+            // document.documentElement.requestFullscreen();
+            screen.orientation.lock("landscape");
+
+            var emit_updates = function(){
+                console.log('emit updates happened')
+                socket.emit('controller_state_change', controller_state);
+            }
+
+            var touchstart = function(e){
+                e.preventDefault();
+
+                console.log(e)
+                controller_state.accelerate = true;
+                emit_updates();
+            }
+
+            var touchend = function(e){
+                e.preventDefault();
+
+                console.log(e)
+                controller_state.accelerate = false;
+                emit_updates();
+            }
+
+            var devicemotion = function(e){
+                controller_state.steer = e.accelerationIncludingGravity.y / 100;
+
+                emit_updates();
+            }
+
+            // For Android and iOS
+            document.body.addEventListener('touchstart', touchstart, false)
+            document.body.addEventListener('touchend', touchend, false)
+
+            // Universal
+            window.addEventListener('devicemotion', devicemotion, false)
+
+            // For Windows OS phones
+            document.body.addEventListener('MSPointerDown', touchstart, false)
+            document.body.addEventListener('MSPointerUp', touchstart, false)
+
+        } else {
+            // GAME CONNECTION
+            socket.on('connect', () => {
+                socket.emit('game_connect');
+                let qr = document.createElement('div')
+                
+                qr.id = 'qr'
+
+                document.getElementById('upperHolder').appendChild(qr)
+
+                const game_connected = () => {
+                    // let url = "http://192.168.0.107:3000?id="+socket.id;
+                    let url = "ridethenight.netlify.app?id="+socket.id;
+
+                    document.getElementById('urlHolder').innerHTML += `<div id="url">
+                            <h4>${url}</h4>
+                        </div>`;
+                    let qr_code = new QRCode('qr')
+                    qr_code.makeCode(url)
+
+                    var renderer = new THREE.WebGLRenderer({
+                        antialias: true
+                    });
+
+                    var scene = new THREE.Scene();
+                    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+                    renderer.setSize( window.innerWidth - 18, window.innerHeight );
+                    document.querySelector('#stage').appendChild( renderer.domElement );
+
+
+                    // Scene lights
+                    const ambient_light = new THREE.AmbientLight(0x222222);
+                    const directional_light = new THREE.DirectionalLight(0xffffff, 1);
+
+                    directional_light.position.y = 150; // "up" / "down"
+                    directional_light.position.x = -100; // "left" / "right"
+                    directional_light.position.z = 60; // "forward" / "backward"
+
+                    directional_light.castShadow = true;
+
+
+                    // var geometrybx = new THREE.BoxGeometry();
+                    // var material = new THREE.MeshBasicMaterial({ color: 0x00ff00  });
+                    // var cube = new THREE.Mesh( geometry, material );
+
+                    var floor = new THREE.Mesh(new THREE.PlaneBufferGeometry(600,600), new THREE.MeshLambertMaterial({color: 0x990000}))
+                    floor.rotation.x = -90 * (Math.PI / 180)
+                    floor.receiveShadow = true;
+
+                    camera.position.z = -200;
+                    camera.position.y = 100;
+
+                    camera.lookAt(floor.position);
+
+                    // scene.add(cube);
+                    scene.add(camera);
+                    scene.add(ambient_light);
+                    scene.add(directional_light);
+                    scene.add(floor);
+
+                    // loader.load(
+                    //     'public/ford mustan gt1967.glb', function(gltf) {
+                    //         scene.add(gltf.scene)
+                    //     }, undefined, function(error){
+                    //         console.error(error);
+                    //     }
+                    // );
+                    var loader = new THREE.GLTFLoader();
+
+                    loader.load( 'public/ford mustan gt1967.glb', function ( gltf ) {
+                        mesh = gltf.scene
+                        console.log(mesh.scale)
+                        mesh.castShadow = true;
+                        mesh.scale.set( 0.1, 0.1, 0.1 );
+                        // mesh.rotation += 0.4;
+                        // requestAnimationFrame(animate);
+                        scene.add( mesh );
+                        console.log(scene.children);
+                    }, undefined, function ( error ) {
+                        console.error( error );
+                    } );
+                    renderer.shadowMapEnabled = true;
+
+
+
+
+                    function animate() {
+                        if (scene.children[4]){
+                            // console.log(controller_state)
+                            // controller_state.steer = 1
+                            // scene.children[4].rotation.y += 0.01;
+                            if (controller_state.steer) {
+                                var percentage_speed = (speed / 2);
+                                console.log("steer")
+                                scene.children[4].rotateY(controller_state.steer * percentage_speed);
+                            }
+
+                            if (controller_state.accelerate){
+                                console.log("accelerate")
+                                if (speed < 2){
+                                    console.log(speed)
+                                    speed += 0.05;
+                                }else{
+                                    speed = 2;
+                                }
+
+                            }else{
+                                if (0 < speed){
+                                    speed -= 0.05;
+                                }else{
+                                    speed = 0;
+                                }
+                            }
+
+                            scene.children[4].translateZ(speed);
+
+                            if (scene.children[4].position.x > 300){
+                                scene.children[4].position.x = 300;
+                            }
+                            if (scene.children[4].position.x < -300){
+                                scene.children[4].position.x = -300;
+                            }
+                            if (scene.children[4].position.z > 300) {
+                                scene.children[4].position.z = 300;
+                            }
+                            if (scene.children[4].position.z < -300) {
+                                scene.children[4].position.z = -300;
+                            }
+                        }
+                        requestAnimationFrame( animate );
+                        renderer.render( scene, camera );
+                        
+                    }
+                    animate();
+                    controller_state = {};
+                    var speed = 0;
+                    console.log(controller_state);
+
+
+                    socket.removeListener('game_connected', game_connected)
+                };
+
+                
+                
+
+                socket.on('game_connected', game_connected);
+
+                
+            });
+        }
+
+        socket.on('controller_connected', connected => {
+            if (connected){
+                alert("CONTROLLER CONNECTED");
+                
+                controller_state = {
+                    accelerate: false,
+                    steer: 0
+                }
+                console.log(controller_state)
+
+
+                document.getElementById('upperHolder').style.display = "none";
+                document.getElementById('urlHolder').style.display = "none";
+                document.querySelector('#stage').style.display = "block";
+            } else {
+                alert("CONTROLLER DISCONNECTED");
+                document.getElementById('upperHolder').style.display = "block";
+                document.getElementById('urlHolder').style.display = "block";
+                controller_state = {};
+                document.querySelector('#stage').style.display = "none";
+            }
+        })
+
+        socket.on('controller_state_change', function(state){
+            console.log("controller_state_changed")
+            // console.log(state)
+            // console.log(controller_state)
+            controller_state = state;
+            // console.log(controller_state)
+        })
+
+
+    </script>
+    <div id="upperHolder">
+
+    </div>
+    <div id="urlHolder">
+
+    </div>
+    <div id="stage"></div>
+</body>
+</html>

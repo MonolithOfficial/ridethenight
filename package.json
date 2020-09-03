@@ -1,0 +1,15 @@
+{
+  "name": "ridethedawn",
+  "version": "1.0.0",
+  "description": "Ride the dawn",
+  "devDependencies": {
+    "express": "*"
+  },
+  "keywords": [],
+  "author": "Monolith",
+  "license": "ISC",
+  "dependencies": {
+    "socket.io": "^2.3.0",
+    "uuid": "^8.3.0"
+  }
+}
