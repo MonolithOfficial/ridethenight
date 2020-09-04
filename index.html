@@ -151,8 +151,8 @@
                 document.getElementById('upperHolder').appendChild(qr)
 
                 const game_connected = () => {
-                    let url = "http://192.168.0.107:3000?id="+socket.id;
-                    // let url = "https://ridethenight.herokuapp.com?id="+socket.id;
+                    // let url = "http://192.168.0.107:3000?id="+socket.id;
+                    let url = "https://ridethenight.herokuapp.com?id="+socket.id;
 
                     document.getElementById('urlHolder').innerHTML += `<div id="url">
                             <h4>${url}</h4>
