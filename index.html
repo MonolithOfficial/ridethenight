@@ -325,6 +325,9 @@
 
                         if (scene.children[4]){
                             camera.lookAt(scene.children[4].position);
+                            // camera.position.x = scene.children[4].position.x + 50;
+                            camera.position.y = scene.children[4].position.y + 50;
+                            camera.position.z = scene.children[4].position.z - 50;
                         }
                         
                     }
