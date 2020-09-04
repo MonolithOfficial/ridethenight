@@ -11,6 +11,8 @@
 const express = require('express')
 const http = require('http')
 const app = express()
+const cors = require('cors')
+app.use(cors());
 const server = http.createServer(app)
 var io = require('socket.io')(server)
 const { v4: uuidV4 } = require('uuid')
@@ -38,7 +40,8 @@ function end(){
     timeDiff /= 1000;
 
     let seconds = Math.round(timeDiff);
-    console.log(`Time elapsed: ${timeDiff}`)
+    // console.log(`Time elapsed: ${timeDiff}`)
+    return timeDiff
 }
 
 
@@ -104,13 +107,17 @@ io.on('connect', socket => {
         // If the game's open
         if (game_sockets[socket.id]){
             console.log('Game disconnected')
-            end()
             
+            var elapsedTime = end()
+            console.log(elapsedTime)
+            if (controller_sockets[game_sockets[socket.id].controller_id]) {
+                controller_sockets[game_sockets[socket.id].controller_id].socket.emit('end_time', elapsedTime)
+            }
             
-            if (game_sockets[socket.id].controller_id){
+            if (controller_sockets[game_sockets[socket.id].controller_id]){
 
-                game_sockets[socket.id].socket.emit('controller_connected', false)
-                game_sockets[socket.id].controller_id = undefined
+                controller_sockets[game_sockets[socket.id].controller_id].socket.emit("controller_connected", false)
+                controller_sockets[game_sockets[socket.id].controller_id].game_id = undefined;
             }
 
             // console.log(game_sockets)
@@ -120,6 +127,11 @@ io.on('connect', socket => {
         // If the controller's connected
         if (controller_sockets[socket.id]){
             console.log('Controller disconnected')
+            var elapsedTime = end()
+            console.log(elapsedTime)
+            if (game_sockets[controller_sockets[socket.id].game_id]) {
+                game_sockets[controller_sockets[socket.id].game_id].socket.emit('end_time', elapsedTime);
+            }
             // console.log(game_sockets)
             // console.log(controller_sockets)
             // console.log(game_sockets[controller_sockets.game_id])
@@ -138,6 +150,7 @@ io.on('connect', socket => {
         }
 
     })
+
 });
 
 // io.on('message', data => {

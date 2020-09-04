@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://davidshimjs.github.io/qrcodejs/qrcode.min.js"></script>
-    <script src="//threejs.org/build/three.js"></script>
+    <script src="https://threejs.org/build/three.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r92/examples/js/loaders/GLTFLoader.js"></script>
     <link type="text/css" rel="stylesheet" href="./public/style.css">
     <title>Ride The Dawn 3D</title>
@@ -18,8 +18,14 @@
         // var current_url = window.location.href;
 
         var controller_state = {};
+        var elapsedTime = 0;
         // var speed = 0;
-        const socket = io();
+        const socket = io({
+            reconnection: true,
+            reconnectionAttempts: 1,
+            timeout: 3000
+        });
+
         var isReady = false;
 
 
@@ -35,22 +41,50 @@
             controlHolder.style.height = '100vh';
             controlHolder.style.width = '100vw';
 
-            document.body.appendChild(controlHolder)
+            document.body.appendChild(controlHolder);
 
-            var decelerate = document.createElement('div');
-            decelerate.id = 'decelerate';
-            decelerate.style.backgroundColor = 'red';
+            var arrowHolder = document.createElement('div');
+            arrowHolder.id = 'decelerate';
+            arrowHolder.style.backgroundColor = 'black';
+            arrowHolder.style.display = 'grid';
+            arrowHolder.style.gridTemplateColumns = '1fr 1fr';
+            arrowHolder.style.columnGap = '1rem';
+            arrowHolder.style.alignItems = 'flex-end';
             // decelerate.style.width = "50vw";
             // decelerate.style.height = "100vh";
 
-            var accelerate = document.createElement('div')
+            var leftArrow = document.createElement('img');
+            leftArrow.id = 'leftArrow';
+            leftArrow.src = './public/images/left-arrow.png';
+            leftArrow.style.maxWidth = '100%';
+
+            var rightArrow = document.createElement('img');
+            rightArrow.id = 'rightArrow';
+            rightArrow.src = './public/images/right-arrow.png';
+            rightArrow.style.maxWidth = '100%';
+
+            arrowHolder.appendChild(leftArrow);
+            arrowHolder.appendChild(rightArrow);
+
+            var accelerate = document.createElement('div');
             accelerate.id = 'accelerate';
-            accelerate.style.backgroundColor = 'blue';
+            accelerate.style.backgroundColor = 'black';
+            accelerate.style.display = 'flex';
+            accelerate.style.justifyContent = 'center';
+            accelerate.style.alignItems = 'flex-end';
+            accelerate.style.transition = '1s'
             // accelerate.style.width = '50vw';
             // accelerate.style.height = '100vh';
 
+            var pedalImg = document.createElement('img');
+            pedalImg.src = './public/images/gas-pedal.png';
+            pedalImg.id = 'pedalImg';
+            pedalImg.style.transition = '0.5s';
+
+            accelerate.appendChild(pedalImg);
+
+            document.getElementById('controlHolder').appendChild(arrowHolder);
             document.getElementById('controlHolder').appendChild(accelerate);
-            document.getElementById('controlHolder').appendChild(decelerate);
 
             // var fullScreenBtn = document.createElement('button');
             // fullScreenBtn.id = 'fullScreenBtn';
@@ -62,7 +96,7 @@
             //     screen.orientation.lock("landscape");
             // })
             // document.documentElement.requestFullscreen();
-            screen.orientation.lock("landscape");
+            // screen.orientation.lock("landscape");
 
             var emit_updates = function(){
                 console.log('emit updates happened')
@@ -72,7 +106,9 @@
             var touchstart = function(e){
                 e.preventDefault();
 
-                console.log(e)
+                pedalImg.style.transform = 'scale3d(1.1)'
+                accelerate.style.backgroundColor = 'red';
+                console.log(e);
                 controller_state.accelerate = true;
                 emit_updates();
             }
@@ -80,6 +116,8 @@
             var touchend = function(e){
                 e.preventDefault();
 
+                pedalImg.style.transform = 'scale3d(1)'
+                accelerate.style.backgroundColor = 'black';
                 console.log(e)
                 controller_state.accelerate = false;
                 emit_updates();
@@ -92,8 +130,8 @@
             }
 
             // For Android and iOS
-            document.body.addEventListener('touchstart', touchstart, false)
-            document.body.addEventListener('touchend', touchend, false)
+            accelerate.addEventListener('touchstart', touchstart, false)
+            accelerate.addEventListener('touchend', touchend, false)
 
             // Universal
             window.addEventListener('devicemotion', devicemotion, false)
@@ -113,8 +151,8 @@
                 document.getElementById('upperHolder').appendChild(qr)
 
                 const game_connected = () => {
-                    // let url = "http://192.168.0.107:3000?id="+socket.id;
-                    let url = "https://ridethenight.herokuapp.com?id="+socket.id;
+                    let url = "http://192.168.0.107:3000?id="+socket.id;
+                    // let url = "https://ridethenight.herokuapp.com?id="+socket.id;
 
                     document.getElementById('urlHolder').innerHTML += `<div id="url">
                             <h4>${url}</h4>
@@ -220,20 +258,31 @@
                             scene.children[4].translateZ(speed);
 
                             if (scene.children[4].position.x > 300){
-                                scene.children[4].position.x = 300;
+                                // scene.children[4].position.x = 299;
+                                if(!alert('GAME OVER')){scene.children[4].position.x = 0;}
+                                
                             }
                             if (scene.children[4].position.x < -300){
-                                scene.children[4].position.x = -300;
+                                // scene.children[4].position.x = -299;
+                                if(!alert('GAME OVER')){scene.children[4].position.x = 0;}
+                                
                             }
                             if (scene.children[4].position.z > 300) {
-                                scene.children[4].position.z = 300;
+                                // scene.children[4].position.z = 299;
+                                if(!alert('GAME OVER')){scene.children[4].position.z = 0;}
+                                
                             }
                             if (scene.children[4].position.z < -300) {
-                                scene.children[4].position.z = -300;
+                                // scene.children[4].position.z = -299;
+                                if(!alert('GAME OVER')){scene.children[4].position.z = 0;}
                             }
                         }
                         requestAnimationFrame( animate );
                         renderer.render( scene, camera );
+
+                        if (scene.children[4]){
+                            camera.lookAt(scene.children[4].position);
+                        }
                         
                     }
                     animate();
@@ -269,7 +318,7 @@
                 document.getElementById('urlHolder').style.display = "none";
                 document.querySelector('#stage').style.display = "block";
             } else {
-                alert("CONTROLLER DISCONNECTED");
+                alert(`CONTROLLER DISCONNECTED, Time spent in-game: ${elapsedTime}`);
                 document.getElementById('upperHolder').style.display = "block";
                 document.getElementById('urlHolder').style.display = "block";
                 controller_state = {};
@@ -285,6 +334,12 @@
             // console.log(controller_state)
         })
 
+        socket.on('end_time', data => {
+            elapsedTime = data;
+        });
+
+
+
 
     </script>
     <div id="upperHolder">
@@ -293,6 +348,6 @@
     <div id="urlHolder">
 
     </div>
-    <div id="stage"></div>
+    <div id="stage" class="fadeIn"></div>
 </body>
 </html>

@@ -9,7 +9,8 @@
   "author": "Monolith",
   "license": "ISC",
   "dependencies": {
-    "express":"*",
+    "cors": "^2.8.5",
+    "express": "*",
     "socket.io": "^2.3.0",
     "uuid": "^8.3.0"
   }
