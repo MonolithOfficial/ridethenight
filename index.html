@@ -123,18 +123,61 @@
                 emit_updates();
             }
 
-            var devicemotion = function(e){
-                controller_state.steer = e.accelerationIncludingGravity.y / 100;
+            // var devicemotion = function(e){
+            //     controller_state.steer = e.accelerationIncludingGravity.y / 100;
 
+            //     emit_updates();
+            // }
+
+            var touchStartSteerLeft = function() {
+                if (controller_state.steer < 0.2){
+                    controller_state.steer += 0.04;
+                }else{
+                    controller_state.steer = 0.2
+                }
                 emit_updates();
             }
+
+            var touchEndSteerLeft = function() {
+                if (controller_state.steer > 0){
+                    controller_state.steer -= 0.04;
+                }else{
+                    controller_state.steer = 0
+                }
+                emit_updates();
+            }
+            var touchStartSteerRight = function() {
+                if (controller_state.steer > -0.2){
+                    controller_state.steer -= 0.04;
+                }else{
+                    controller_state.steer = -0.2
+                }
+                emit_updates();
+            }
+
+            var touchEndSteerRight = function() {
+                if (controller_state.steer < 0){
+                    controller_state.steer += 0.04;
+                }else{
+                    controller_state.steer = 0
+                }
+                emit_updates();
+            }
+
+
 
             // For Android and iOS
             accelerate.addEventListener('touchstart', touchstart, false)
             accelerate.addEventListener('touchend', touchend, false)
 
+            leftArrow.addEventListener('touchstart', touchStartSteerLeft, false)
+            leftArrow.addEventListener('touchend', touchEndSteerLeft, false)
+
+            rightArrow.addEventListener('touchstart', touchStartSteerRight, false)
+            rightArrow.addEventListener('touchend', touchEndSteerRight, false)
+
             // Universal
-            window.addEventListener('devicemotion', devicemotion, false)
+            // window.addEventListener('devicemotion', devicemotion, false)
 
             // For Windows OS phones
             document.body.addEventListener('MSPointerDown', touchstart, false)
